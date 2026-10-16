@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+ import WebSocket from 'ws';
 import { broadcastToClient } from './server.js';
 
 export async function connectClientToTikTok(username, clientId) {
@@ -35,4 +35,3 @@ export async function connectClientToTikTok(username, clientId) {
     console.error('Eroare TikTok:', err);
   }
 }
- 
