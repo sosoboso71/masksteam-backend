@@ -1,40 +1,38 @@
-const WebSocket = require('ws');
-const fetch = require('node-fetch');
-const { broadcastToClient } = require('./server');
+import WebSocket from 'ws';
+import { broadcastToClient } from './server.js';
 
-async function connectClientToTikTok(username, clientId) {
-    // 1. Obținem ROOM_ID de la Zerody
-    const res = await fetch(`https://tiktok-chat-reader.zerody.one/api/getRoomId?username=${username}`);
+export async function connectClientToTikTok(username, clientId) {
+  try {
+    const res = await fetch(
+      `https://tiktok-chat-reader.zerody.one/api/getRoomId?username=${encodeURIComponent(username)}`
+    );
     const data = await res.json();
 
     if (!data.roomId) {
-        console.log("Nu am găsit ROOM_ID pentru", username);
-        return;
+      broadcastToClient(clientId, {
+        event: "error",
+        data: { message: "User not live" }
+      });
+      return;
     }
 
-    const ROOM_ID = data.roomId;
-
-    // 2. Conectăm clientul la TikTok LIVE
-    const ws = new WebSocket(`wss://tiktok-chat-reader.zerody.one/websocket?room_id=${ROOM_ID}`);
-
-    ws.on('open', () => {
-        console.log(`Client ${clientId} conectat la TikTok LIVE (${username})`);
-    });
+    const ws = new WebSocket(
+      `wss://tiktok-chat-reader.zerody.one/websocket?room_id=${data.roomId}`
+    );
 
     ws.on('message', (msg) => {
-        const event = JSON.parse(msg);
+      let event;
+      try { event = JSON.parse(msg); } catch { return; }
 
-        // 3. Trimitem evenimentul DOAR către overlay-ul acestui client
-        broadcastToClient(clientId, event);
-    });
+      const formatted = {
+        event: event.type,
+        data: event.data
+      };
 
-    ws.on('close', () => {
-        console.log(`Conexiune închisă pentru client ${clientId}`);
+      broadcastToClient(clientId, formatted);
     });
-
-    ws.on('error', (err) => {
-        console.error(`Eroare pentru client ${clientId}:`, err);
-    });
+  } catch (err) {
+    console.error('Eroare TikTok:', err);
+  }
 }
-
-module.exports = { connectClientToTikTok };
+ 
