@@ -1,4 +1,4 @@
- import { WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { connectClientToTikTok } from './tiktok.js';
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -27,3 +27,4 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => clients.delete(clientId));
 });
+ 
