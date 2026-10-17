@@ -1,46 +1,93 @@
- const { WebcastPushConnection } = require('tiktok-live-connector');
-const { broadcastToClient } = require('./utils.js');
+ import {
+    TikTokLiveConnection,
+    ControlEvent,
+    WebcastEvent
+} from '@zerodytrash/tiktok-live-connector';
+import { broadcastToClient } from './server.js';
 
-function connectClientToTikTok(username, clientId, clients) {
+export function connectClientToTikTok(username, clientId, clients) {
 
-    const connection = new WebcastPushConnection(username);
+    const connection = new TikTokLiveConnection(username);
 
     connection.connect();
 
-    connection.on('chat', (msg) => {
-        broadcastToClient(clients, clientId, {
+    // CONNECTED
+    connection.on(ControlEvent.CONNECTED, (state) => {
+        broadcastToClient(clientId, {
+            event: "connected",
+            data: state
+        });
+    });
+
+    // DISCONNECTED
+    connection.on(ControlEvent.DISCONNECTED, ({ code, reason }) => {
+        broadcastToClient(clientId, {
+            event: "disconnected",
+            data: { code, reason }
+        });
+    });
+
+    // ERROR
+    connection.on(ControlEvent.ERROR, ({ info, exception }) => {
+        broadcastToClient(clientId, {
+            event: "error",
+            data: { info, exception }
+        });
+    });
+
+    // CHAT
+    connection.on(WebcastEvent.CHAT, (data) => {
+        broadcastToClient(clientId, {
             event: "chat",
-            data: msg
+            data
         });
     });
 
-    connection.on('gift', (msg) => {
-        broadcastToClient(clients, clientId, {
+    // GIFT
+    connection.on(WebcastEvent.GIFT, (data) => {
+        broadcastToClient(clientId, {
             event: "gift",
-            data: msg
+            data
         });
     });
 
-    connection.on('like', (msg) => {
-        broadcastToClient(clients, clientId, {
+    // LIKE
+    connection.on(WebcastEvent.LIKE, (data) => {
+        broadcastToClient(clientId, {
             event: "like",
-            data: msg
+            data
         });
     });
 
-    connection.on('follow', (msg) => {
-        broadcastToClient(clients, clientId, {
-            event: "follow",
-            data: msg
+    // MEMBER JOIN
+    connection.on(WebcastEvent.MEMBER, (data) => {
+        broadcastToClient(clientId, {
+            event: "member",
+            data
         });
     });
 
-    connection.on('share', (msg) => {
-        broadcastToClient(clients, clientId, {
-            event: "share",
-            data: msg
+    // SOCIAL (share/follow)
+    connection.on(WebcastEvent.SOCIAL, (data) => {
+        broadcastToClient(clientId, {
+            event: "social",
+            data
+        });
+    });
+
+    // EMOTE
+    connection.on(WebcastEvent.EMOTE, (data) => {
+        broadcastToClient(clientId, {
+            event: "emote",
+            data
+        });
+    });
+
+    // ROOM USER (viewer count)
+    connection.on(WebcastEvent.ROOM_USER, (data) => {
+        broadcastToClient(clientId, {
+            event: "roomUser",
+            data
         });
     });
 }
-
-module.exports = { connectClientToTikTok };
