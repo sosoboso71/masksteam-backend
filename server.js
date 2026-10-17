@@ -1,7 +1,9 @@
 import { WebSocketServer } from 'ws';
 import { connectClientToTikTok } from './tiktok.js';
 
-const wss = new WebSocketServer({ port: 8080 });
+const PORT = process.env.PORT || 8080;
+const wss = new WebSocketServer({ port: PORT });
+
 const clients = new Map();
 
 export function broadcastToClient(clientId, event) {
