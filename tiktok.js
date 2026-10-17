@@ -1,57 +1,46 @@
  const { WebcastPushConnection } = require('tiktok-live-connector');
-const { broadcastToClient } = require('./server.js');
+const { broadcastToClient } = require('./utils.js');
 
-function connectClientToTikTok(username, clientId) {
+function connectClientToTikTok(username, clientId, clients) {
 
     const connection = new WebcastPushConnection(username);
 
     connection.connect();
 
-    // CHAT
     connection.on('chat', (msg) => {
-        broadcastToClient(clientId, {
+        broadcastToClient(clients, clientId, {
             event: "chat",
             data: msg
         });
     });
 
-    // GIFT
     connection.on('gift', (msg) => {
-        broadcastToClient(clientId, {
+        broadcastToClient(clients, clientId, {
             event: "gift",
             data: msg
         });
     });
 
-    // LIKE
     connection.on('like', (msg) => {
-        broadcastToClient(clientId, {
+        broadcastToClient(clients, clientId, {
             event: "like",
             data: msg
         });
     });
 
-    // FOLLOW
     connection.on('follow', (msg) => {
-        broadcastToClient(clientId, {
+        broadcastToClient(clients, clientId, {
             event: "follow",
             data: msg
         });
     });
 
-    // SHARE
     connection.on('share', (msg) => {
-        broadcastToClient(clientId, {
+        broadcastToClient(clients, clientId, {
             event: "share",
             data: msg
         });
     });
-
-    // POȚI ADAUGA ORICE EVENT DIN LISTA ZERODY:
-    // connection.on('member', ...)
-    // connection.on('social', ...)
-    // connection.on('emote', ...)
-    // connection.on('roomUser', ...)
 }
 
 module.exports = { connectClientToTikTok };
