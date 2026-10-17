@@ -1,37 +1,74 @@
- import WebSocket from 'ws';
+ import { TikTokLiveConnection, WebcastEvent, ControlEvent } from 'tiktok-live-connector';
 import { broadcastToClient } from './server.js';
 
-export async function connectClientToTikTok(username, clientId) {
-  try {
-    const res = await fetch(
-      `https://tiktok-chat-reader.zerody.one/api/getRoomId?username=${encodeURIComponent(username)}`
-    );
-    const data = await res.json();
+export function connectClientToTikTok(username, clientId) {
 
-    if (!data.roomId) {
-      broadcastToClient(clientId, {
-        event: "error",
-        data: { message: "User not live" }
-      });
-      return;
-    }
+    const connection = new TikTokLiveConnection(username);
 
-    const ws = new WebSocket(
-      `wss://tiktok-chat-reader.zerody.one/websocket?room_id=${data.roomId}`
-    );
-
-    ws.on('message', (msg) => {
-      let event;
-      try { event = JSON.parse(msg); } catch { return; }
-
-      const formatted = {
-        event: event.type,
-        data: event.data
-      };
-
-      broadcastToClient(clientId, formatted);
+    // Control events
+    connection.on(ControlEvent.CONNECTED, () => {
+        broadcastToClient(clientId, {
+            event: "connected",
+            data: { username }
+        });
     });
-  } catch (err) {
-    console.error('Eroare TikTok:', err);
-  }
+
+    connection.on(ControlEvent.DISCONNECTED, () => {
+        broadcastToClient(clientId, {
+            event: "disconnected",
+            data: { username }
+        });
+    });
+
+    connection.on(ControlEvent.ERROR, (err) => {
+        broadcastToClient(clientId, {
+            event: "error",
+            data: { message: err.message }
+        });
+    });
+
+    // Message events (chat, gift, like, follow, share, etc.)
+    connection.on(WebcastEvent.CHAT, (msg) => {
+        broadcastToClient(clientId, {
+            event: "chat",
+            data: msg
+        });
+    });
+
+    connection.on(WebcastEvent.GIFT, (msg) => {
+        broadcastToClient(clientId, {
+            event: "gift",
+            data: msg
+        });
+    });
+
+    connection.on(WebcastEvent.LIKE, (msg) => {
+        broadcastToClient(clientId, {
+            event: "like",
+            data: msg
+        });
+    });
+
+    connection.on(WebcastEvent.FOLLOW, (msg) => {
+        broadcastToClient(clientId, {
+            event: "follow",
+            data: msg
+        });
+    });
+
+    connection.on(WebcastEvent.SHARE, (msg) => {
+        broadcastToClient(clientId, {
+            event: "share",
+            data: msg
+        });
+    });
+
+    // Poți adăuga ORICE event din lista ta:
+    // WebcastEvent.MEMBER
+    // WebcastEvent.SOCIAL
+    // WebcastEvent.EMOTE
+    // WebcastEvent.ROOM_USER
+    // etc.
+
+    connection.connect();
 }
