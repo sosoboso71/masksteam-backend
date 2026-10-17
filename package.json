@@ -1,10 +1,10 @@
- {
+{
   "name": "maskstream-backend",
   "version": "1.0.0",
-  "type": "module",
   "main": "server.js",
   "dependencies": {
     "ws": "^8.17.0",
     "tiktok-live-connector": "^1.0.0"
   }
 }
+ 
