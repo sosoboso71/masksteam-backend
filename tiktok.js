@@ -1,12 +1,14 @@
- import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector';
-import { broadcastToClient } from './server.js';
+ const { WebcastPushConnection } = require('tiktok-live-connector');
+const { broadcastToClient } = require('./server.js');
 
-export function connectClientToTikTok(username, clientId) {
+function connectClientToTikTok(username, clientId) {
 
-    const connection = new TikTokLiveConnection(username);
+    const connection = new WebcastPushConnection(username);
+
+    connection.connect();
 
     // CHAT
-    connection.on(WebcastEvent.CHAT, (msg) => {
+    connection.on('chat', (msg) => {
         broadcastToClient(clientId, {
             event: "chat",
             data: msg
@@ -14,7 +16,7 @@ export function connectClientToTikTok(username, clientId) {
     });
 
     // GIFT
-    connection.on(WebcastEvent.GIFT, (msg) => {
+    connection.on('gift', (msg) => {
         broadcastToClient(clientId, {
             event: "gift",
             data: msg
@@ -22,7 +24,7 @@ export function connectClientToTikTok(username, clientId) {
     });
 
     // LIKE
-    connection.on(WebcastEvent.LIKE, (msg) => {
+    connection.on('like', (msg) => {
         broadcastToClient(clientId, {
             event: "like",
             data: msg
@@ -30,7 +32,7 @@ export function connectClientToTikTok(username, clientId) {
     });
 
     // FOLLOW
-    connection.on(WebcastEvent.FOLLOW, (msg) => {
+    connection.on('follow', (msg) => {
         broadcastToClient(clientId, {
             event: "follow",
             data: msg
@@ -38,12 +40,18 @@ export function connectClientToTikTok(username, clientId) {
     });
 
     // SHARE
-    connection.on(WebcastEvent.SHARE, (msg) => {
+    connection.on('share', (msg) => {
         broadcastToClient(clientId, {
             event: "share",
             data: msg
         });
     });
 
-    connection.connect();
+    // POȚI ADAUGA ORICE EVENT DIN LISTA ZERODY:
+    // connection.on('member', ...)
+    // connection.on('social', ...)
+    // connection.on('emote', ...)
+    // connection.on('roomUser', ...)
 }
+
+module.exports = { connectClientToTikTok };
