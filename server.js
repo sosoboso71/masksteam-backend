@@ -1,16 +1,11 @@
- import { WebSocketServer } from 'ws';
-import { connectClientToTikTok } from './tiktok.js';
+ const WebSocket = require('ws');
+const { connectClientToTikTok } = require('./tiktok.js');
+const { broadcastToClient } = require('./utils.js');
 
 const PORT = process.env.PORT || 10000;
-const wss = new WebSocketServer({ port: PORT });
+const wss = new WebSocket.Server({ port: PORT });
 
 const clients = new Map();
-
-export function broadcastToClient(clientId, event) {
-    const ws = clients.get(clientId);
-    if (!ws || ws.readyState !== ws.OPEN) return;
-    ws.send(JSON.stringify(event));
-}
 
 wss.on('connection', (ws) => {
     const clientId = Date.now().toString() + Math.random().toString(16).slice(2);
